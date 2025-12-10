@@ -7,17 +7,16 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import requests
 
-import google.generativeai as genai
-
-# ---------- Load env & configure Gemini ----------
+# ---------- Load env & configure Jules API ----------
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY = os.getenv("JULES_API_KEY")
 
 if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not configured in .env")
+    raise RuntimeError("JULES_API_KEY not configured in .env")
 
-genai.configure(api_key=API_KEY)
+JULES_API_URL = "https://api.jules.ai/v1/chat/completions"
 
 SYSTEM_PROMPT = """
 You are a specialized AI Assistant designed ONLY for answering questions related to:
@@ -42,12 +41,6 @@ Your purpose:
 To help users understand, analyze, and forecast cash flow and short-term financial performance only.
 """
 
-# Create model with system instruction
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=SYSTEM_PROMPT,
-)
-
 # ---------- FastAPI app ----------
 app = FastAPI(title="Cashflow & Forecasting Chatbot")
 
@@ -62,7 +55,7 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
-    history: List[dict] | None = None  # optional: [{"role": "user"/"model", "parts": ["..."]}, ...]
+    history: List[dict] | None = None
 
 
 class ChatResponse(BaseModel):
@@ -72,14 +65,40 @@ class ChatResponse(BaseModel):
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
     try:
-        history = req.history or []
-        chat_session = model.start_chat(history=history)
-
-        result = chat_session.send_message(req.message)
-        reply = result.text or ""
-
-        if not reply.strip():
-            reply = "I'm not allowed to answer this type of question. Please ask about cash flow or financial forecasting."
+        # Prepare messages for Jules API
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        
+        # Add conversation history if provided
+        if req.history:
+            for msg in req.history:
+                messages.append(msg)
+        
+        # Add current user message
+        messages.append({"role": "user", "content": req.message})
+        
+        # Call Jules API
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": "jules-v1",
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 500
+        }
+        
+        response = requests.post(JULES_API_URL, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            reply = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            
+            if not reply.strip():
+                reply = "I'm not allowed to answer this type of question. Please ask about cash flow or financial forecasting."
+        else:
+            reply = f"API Error: {response.status_code} - {response.text}"
 
         return ChatResponse(reply=reply)
 
