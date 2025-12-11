@@ -81,20 +81,37 @@ cd Financial-Forecasting-Cash-Flow
 pip install -r requirements.txt
 ```
 
-### Step 3: Set up OpenAI API key (for chat agent)
-```bash
+### Step 3: Set up Jules API key (for AI chatbot)```bash
 # Windows
-set OPENAI_API_KEY=your-api-key-here
+setJULES_API_KEYOPENAI_API_KEY=your-api-key-here
 
 # Linux/Mac
-export OPENAI_API_KEY=your-api-key-here
+export JULES_API_KEY=your-api-key-here
 ```
+
+Get your Jules API key from: https://jules.google.com/settings#api
 
 ### Step 4: Run the backend
 ```bash
 cd backend
 uvicorn main:app --reload --port 8000
 ```
+
+### Step 4b: Run the AI chatbot backend (optional, in a new terminal)
+
+```bash
+cd chatbot_backend
+uvicorn main:app --reload --port 8001
+```
+
+### Step 4c: Run the AI chatbot frontend (optional, in a new terminal)
+
+```bash
+cd chatbot_frontend
+streamlit run app.py
+```
+
+The chatbot will be available on a separate port from the main dashboard.
 
 ### Step 5: Run the frontend (in a new terminal)
 ```bash
