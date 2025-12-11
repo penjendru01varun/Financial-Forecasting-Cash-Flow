@@ -130,9 +130,9 @@ st.markdown("""
     </h1>
     <p style='color: #f0f9ff; font-size: 1.2rem; margin-top: 10px;'>
         MSME Cashflow Forecasting Solution
-                🏆 Penjendru Varun Team 🏆</div>
+    </p>
+</div>
 """, unsafe_allow_html=True)
-
 
     Upload your cashflow CSV (columns: <code>date</code>, <code>description</code>, <code>category</code>, 
     <code>type</code>, <code>amount</code>) and let our AI agents forecast your next 4–12 weeks and highlight risks.
