@@ -64,7 +64,100 @@ def handle_greeting(message: str) -> str:
 def try_jules_api(messages: List[dict]) -> str:
     """Try Jules API"""
     if not JULES_API_KEY:
-        return None
+       # ---------- Rule-based Fallback (No API needed) ----------
+def fallback_chatbot_no_api(message: str) -> str:
+    """
+    Simple rule-based chatbot that works without any API keys.
+    Provides basic responses about cashflow and financial forecasting.
+    """
+    msg_lower = message.lower().strip()
+    
+    # Cashflow keywords
+    if any(word in msg_lower for word in ['cashflow', 'cash flow', 'cash-flow']):
+        return """Cash flow is the movement of money in and out of your business. 
+For MSMEs, maintaining positive cash flow is crucial for operations.
+
+Key tips:
+• Track all inflows (sales, payments received)
+• Monitor outflows (expenses, purchases)
+• Forecast at least 4-8 weeks ahead
+• Maintain a buffer for unexpected costs
+
+Would you like to know more about cash flow management?"""
+    
+    # Forecasting
+    elif any(word in msg_lower for word in ['forecast', 'predict', 'future', 'projection']):
+        return """Financial forecasting helps predict future cash positions based on historical data.
+
+Best practices:
+• Use at least 3-6 months of historical data
+• Consider seasonal trends
+• Account for known upcoming expenses
+• Update forecasts weekly
+• Build in contingency buffers
+
+Upload your transaction data to get AI-powered forecasts!"""
+    
+    # Working capital
+    elif any(word in msg_lower for word in ['working capital', 'liquidity', 'buffer']):
+        return """Working capital is the difference between current assets and liabilities.
+
+For healthy cash flow:
+• Maintain 2-3 months of operating expenses as buffer
+• Negotiate better payment terms with suppliers
+• Speed up receivables collection
+• Manage inventory efficiently
+
+This helps you handle unexpected expenses or opportunities!"""
+    
+    # Risk management
+    elif any(word in msg_lower for word in ['risk', 'risky', 'danger', 'alert']):
+        return """Cash flow risks can threaten business operations.
+
+Common risks:
+• Late customer payments
+• Unexpected large expenses
+• Seasonal revenue fluctuations
+• Over-investment in inventory
+
+Mitigation strategies:
+• Diversify revenue streams
+• Build cash reserves
+• Use early payment discounts
+• Monitor KPIs weekly"""
+    
+    # Budget
+    elif any(word in msg_lower for word in ['budget', 'expense', 'cost', 'spending']):
+        return """Budgeting is essential for cash flow management.
+
+Create an effective budget:
+• List all fixed costs (rent, salaries, utilities)
+• Estimate variable costs (materials, supplies)
+• Project realistic revenue
+• Review and adjust monthly
+• Track actual vs budgeted
+
+This helps identify where money is going and plan better!"""
+    
+    # General financial question
+    elif any(word in msg_lower for word in ['money', 'financial', 'finance', 'business']):
+        return """I'm here to help with cashflow and financial forecasting for MSMEs!
+
+I can assist with:
+• Cash flow analysis and management
+• Financial forecasting techniques
+• Working capital optimization
+• Risk identification and mitigation
+• Budgeting strategies
+
+Please ask me a specific question about any of these topics!"""
+    
+    # Default response for off-topic
+    else:
+        return "I'm specialized in cashflow and financial forecasting. Please ask questions related to cash management, forecasting, budgeting, or financial planning for MSMEs."
+
+ 
+       return None
     
     try:
         headers = {
@@ -245,6 +338,9 @@ def chat(req: ChatRequest):
             api_used = "error"
         
         return ChatResponse(reply=reply, api_used=api_used)
+                   # Use rule-based fallback when all API keys fail
+            reply = fallback_chatbot_no_api(req.message)
+            api_used = "Rule-based Fallback (No API)"
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backend error: {str(e)}")
