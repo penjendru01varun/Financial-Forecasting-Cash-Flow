@@ -126,8 +126,7 @@ st.markdown(
 st.markdown("""
 <div style='text-align: center; background: linear-gradient(90deg, #667eea, #764ba2); padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
     <h1 style='color: white; font-size: 3rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);'>
-        🏆 Penjendru Varun Team 🏆
-    </h1>
+                        Penjendru Varun Team    </h1>
     <p style='color: #f0f9ff; font-size: 1.2rem; margin-top: 10px;'>
         MSME Cashflow Forecasting Solution
     </p>
