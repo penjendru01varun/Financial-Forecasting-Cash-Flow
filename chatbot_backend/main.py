@@ -1,5 +1,4 @@
 # chatbot_backend/main.py
-
 import os
 from typing import List
 from dotenv import load_dotenv
@@ -16,26 +15,27 @@ API_KEY = os.getenv("JULES_API_KEY")
 if not API_KEY:
     raise RuntimeError("JULES_API_KEY not configured in .env")
 
-JULES_API_URL = "https://api.jules.ai/v1/chat/completions"
+# Jules API endpoint (Google's Jules uses different endpoint)
+JULES_API_URL = "https://jules.googleapis.com/v1alpha/chat/completions"
 
 SYSTEM_PROMPT = """
 You are a specialized AI Assistant designed ONLY for answering questions related to:
-Cash flow
-Cash-flow management
-Cash-flow forecasting
-Financial forecasting
-Budgeting related to cash flow
-Working capital
-Liquidity planning
+- Cash flow
+- Cash-flow management
+- Cash-flow forecasting
+- Financial forecasting
+- Budgeting related to cash flow
+- Working capital
+- Liquidity planning
 
 Your strict rules:
-Only respond to cash-flow or financial-forecasting related questions.
-If the user asks anything outside these topics, respond with:
-"I'm not allowed to answer this type of question. Please ask about cash flow or financial forecasting."
-Do NOT behave like ChatGPT.
-Do NOT answer questions about programming, general knowledge, personal advice, math, or any other subject.
-Keep answers clear, accurate, and professional.
-If the question is unclear but related to finance/cashflow, politely ask for clarification.
+1. Only respond to cash-flow or financial-forecasting related questions.
+2. If the user asks anything outside these topics, respond with:
+   "I'm not allowed to answer this type of question. Please ask about cash flow or financial forecasting."
+3. Do NOT behave like ChatGPT.
+4. Do NOT answer questions about programming, general knowledge, personal advice, math, or any other subject.
+5. Keep answers clear, accurate, and professional.
+6. If the question is unclear but related to finance/cashflow, politely ask for clarification.
 
 Your purpose:
 To help users understand, analyze, and forecast cash flow and short-term financial performance only.
@@ -76,14 +76,14 @@ def chat(req: ChatRequest):
         # Add current user message
         messages.append({"role": "user", "content": req.message})
         
-        # Call Jules API
+        # Call Jules API with correct headers
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
+            "X-Goog-Api-Key": API_KEY,
             "Content-Type": "application/json"
         }
         
         payload = {
-            "model": "jules-v1",
+            "model": "gemini-pro",  # Jules uses Gemini models
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 500
@@ -98,9 +98,17 @@ def chat(req: ChatRequest):
             if not reply.strip():
                 reply = "I'm not allowed to answer this type of question. Please ask about cash flow or financial forecasting."
         else:
-            reply = f"API Error: {response.status_code} - {response.text}"
-
+            # Better error handling
+            error_msg = f"API Error: {response.status_code}"
+            try:
+                error_detail = response.json()
+                if "error" in error_detail:
+                    error_msg += f" - {error_detail['error'].get('message', response.text)}"
+            except:
+                error_msg += f" - {response.text[:200]}"
+            reply = error_msg
+            
         return ChatResponse(reply=reply)
-
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backend error: {str(e)}")
