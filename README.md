@@ -81,16 +81,24 @@ cd Financial-Forecasting-Cash-Flow
 pip install -r requirements.txt
 ```
 
-### Step 3: Set up Jules API key (for AI chatbot)```bash
-# Windows
-setJULES_API_KEYOPENAI_API_KEY=your-api-key-here
+### Step 3: AI Chatbot Configuration (Pre-configured with 10 API Keys)
 
-# Linux/Mac
-export JULES_API_KEY=your-api-key-here
-```
+The chatbot is pre-configured with 10 API keys for maximum reliability:
 
-Get your Jules API key from: https://jules.google.com/settings#api
+**Configured APIs:**
+- Jules API
+- Gemini API  
+- Grok API
+- HuggingFace API
+- CloudSambanova API
+- Massive AI API
+- EODHD API
+- BrightData API
+- OpenRouter API
+- AI Studio API
 
+**Intelligent Fallback System:**
+The chatbot tries each API in sequence. If one fails (rate limit/credits exhausted), it automatically moves to the next. Only after ALL 10 APIs are exhausted does it fall back to a rule-based system, ensuring **zero downtime**.
 ### Step 4: Run the backend
 ```bash
 cd backend
