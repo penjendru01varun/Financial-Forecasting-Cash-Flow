@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
 BACKEND_URL = "http://localhost:8000"
 
@@ -137,10 +139,24 @@ with st.sidebar:
 
 uploaded_file = st.file_uploader("📂 Upload CSV file", type=["csv"])
 
-if uploaded_file is not None:
+if uploaded_file is not uploaded_files:
     if st.button("🚀 Run AI Agents"):
-        with st.spinner("🤖 Running agents and generating forecast..."):
-            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
+                # Merge multiple CSV files
+        try:
+            if len(uploaded_files) > 1:
+                all_dfs = []
+                for file in uploaded_files:
+                    df = pd.read_csv(file)
+                    all_dfs.append(df)
+                merged_df = pd.concat(all_dfs, ignore_index=True)
+                st.success(f"✅ Merged {len(uploaded_files)} files with {len(merged_df)} total transactions")
+            else:
+                merged_df = pd.read_csv(uploaded_files[0])
+                st.info(f"📄 Loaded 1 file with {len(merged_df)} transactions")
+        except Exception as e:
+            st.error(f"❌ Error reading files: {e}")
+            merged_df = None
+uploaded_files = st.file_uploader("📂 Upload CSV files (multiple allowed)", type=["csv"], accept_multiple_files=True)            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
             data = {"horizon_weeks": str(horizon_weeks)}
             if initial_provided:
                 data["initial_balance"] = str(initial_balance)
@@ -196,6 +212,87 @@ if uploaded_file is not None:
                         use_container_width=True,
                     )
                     st.markdown("</div>", unsafe_allow_html=True)
+
+                                # === COMPREHENSIVE VISUALIZATIONS ===
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.subheader("📊 Comprehensive Charts & Analysis")
+            
+            # Create tabs for different chart types
+            tab1, tab2, tab3, tab4 = st.tabs(["📈 Line & Area", "📊 Bar Charts", "🥧 Pie Charts", "📉 Heatmap"])
+            
+            with tab1:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**Cash Flow Trend (Line Chart)**")
+                    fig_line = px.line(df_points, x='week_start', y='projected_balance', 
+                                      title='Projected Cash Balance Over Time',
+                                      markers=True)
+                    fig_line.update_traces(line_color='#3b82f6', line_width=3)
+                    st.plotly_chart(fig_line, use_container_width=True)
+                
+                with col2:
+                    st.markdown("**Cash Flow Area Chart**")
+                    fig_area = px.area(df_points, x='week_start', y='projected_balance',
+                                      title='Cash Balance Accumulation')
+                    fig_area.update_traces(fillcolor='rgba(59, 130, 246, 0.3)', line_color='#3b82f6')
+                    st.plotly_chart(fig_area, use_container_width=True)
+            
+            with tab2:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**Weekly Balance (Bar Chart)**")
+                    fig_bar = px.bar(df_points, x='week_start', y='projected_balance',
+                                    title='Weekly Projected Balance',
+                                    color='risk_level',
+                                    color_discrete_map={'safe': '#10b981', 'tight': '#f59e0b', 'risky': '#ef4444'})
+                    st.plotly_chart(fig_bar, use_container_width=True)
+                
+                with col2:
+                    st.markdown("**Risk Level Distribution**")
+                    risk_summary = df_points['risk_level'].value_counts().reset_index()
+                    risk_summary.columns = ['Risk Level', 'Weeks']
+                    fig_risk_bar = px.bar(risk_summary, x='Risk Level', y='Weeks',
+                                         title='Number of Weeks by Risk',
+                                         color='Risk Level',
+                                         color_discrete_map={'safe': '#10b981', 'tight': '#f59e0b', 'risky': '#ef4444'})
+                    st.plotly_chart(fig_risk_bar, use_container_width=True)
+            
+            with tab3:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**Risk Level Pie Chart**")
+                    risk_counts = df_points['risk_level'].value_counts().reset_index()
+                    risk_counts.columns = ['Risk Level', 'Count']
+                    fig_pie = px.pie(risk_counts, values='Count', names='Risk Level',
+                                    title='Weeks by Risk Level',
+                                    color='Risk Level',
+                                    color_discrete_map={'safe': '#10b981', 'tight': '#f59e0b', 'risky': '#ef4444'})
+                    st.plotly_chart(fig_pie, use_container_width=True)
+                
+                with col2:
+                    st.markdown("**Balance Range (Donut Chart)**")
+                    df_points['Balance Range'] = pd.cut(df_points['projected_balance'], 
+                                                       bins=[-float('inf'), 0, 50000, 100000, float('inf')],
+                                                       labels=['Negative', 'Low (<50K)', 'Medium (50-100K)', 'High (>100K)'])
+                    balance_dist = df_points['Balance Range'].value_counts().reset_index()
+                    balance_dist.columns = ['Range', 'Count']
+                    fig_donut = px.pie(balance_dist, values='Count', names='Range',
+                                      title='Balance Distribution', hole=0.4)
+                    st.plotly_chart(fig_donut, use_container_width=True)
+            
+            with tab4:
+                st.markdown("**Risk Intensity Heatmap**")
+                risk_score_map = {'safe': 1, 'tight': 2, 'risky': 3}
+                df_points['Risk Score'] = df_points['risk_level'].map(risk_score_map)
+                fig_heat = px.imshow([df_points['Risk Score'].values],
+                                    labels=dict(x="Week", y="Risk", color="Risk Level"),
+                                    x=df_points['week_start'],
+                                    y=['Cash Flow Risk'],
+                                    color_continuous_scale=[[0, '#10b981'], [0.5, '#f59e0b'], [1, '#ef4444']],
+                                    title='Cash Flow Risk Heatmap Over Time')
+                st.plotly_chart(fig_heat, use_container_width=True)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
 
                     # === ALERTS ===
                     st.markdown("<div class='card'>", unsafe_allow_html=True)
