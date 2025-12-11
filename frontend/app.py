@@ -130,8 +130,7 @@ st.markdown("""
     </h1>
     <p style='color: #f0f9ff; font-size: 1.2rem; margin-top: 10px;'>
         MSME Cashflow Forecasting Solution
-    </p>
-</div>
+                🏆 Penjendru Varun Team 🏆</div>
 """, unsafe_allow_html=True)
 
 
