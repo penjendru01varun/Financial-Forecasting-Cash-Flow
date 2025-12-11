@@ -11,17 +11,25 @@ import requests
 # ---------- Load env & configure Multiple API Keys ----------
 load_dotenv()
 
-# Load all available API keys
-JULES_API_KEY = os.getenv("JULES_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GROK_API_KEY = os.getenv("GROK_API_KEY")
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+# Load all 10 API keys
+JULES_API_KEY = "AQ.Ab8RN6J6o9KezfmPy4wIXqBkx7nbWu7D7W6jINL225QkHSfe2Q"
+GEMINI_API_KEY = "AIzaSyDBHuMSNGNZsjtoSCcRoH_eHze6BLYzIMU"
+GROK_API_KEY = "xai-KZqZ1JdB2I0NbGwiSGa6xYCnEFrcZu6jpmigNpwCeMOWz6oz3iuEgX7sZQ6xdYieVt36QZpEJZwPFF5Y"
+HUGGINGFACE_API_KEY = "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"
+CLOUDSAMBANOVA_API_KEY = "cbb82fb7-0558-40af-997f-9e71cdf28a4f"
+MASSIVEAI_API_KEY = "xnZCyPNL51vXAs7JjjyIIJDnYxnOCdNA"
+EODHD_API_KEY = "693a6ad70abd12.88277264"
+BRIGHTDATA_API_KEY = "929ae03c6501f4d0d86caeb542ea61480ccd2d98553a569091ffa7ecd82e4c53"
+OPENROUTER_API_KEY = "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"
+AISTUDIO_API_KEY = "AIzaSyAoes5DTIp-FKE7VbOcoEBW9fktmRGbfks"
 
 # API endpoints
 JULES_API_URL = "https://jules.googleapis.com/v1alpha/chat/completions"
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
 GROK_API_URL = "https://api.x.ai/v1/chat/completions"
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct"
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+AISTUDIO_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
 
 SYSTEM_PROMPT = """
 You are a specialized AI Assistant designed ONLY for answering questions related to:
@@ -35,240 +43,12 @@ You are a specialized AI Assistant designed ONLY for answering questions related
 
 Your strict rules:
 1. Only respond to cash-flow or financial-forecasting related questions.
-2. If the user asks anything outside these topics, respond with:
-   "I'm not allowed to answer this type of question. Please ask about cash flow or financial forecasting."
-3. Do NOT behave like ChatGPT.
-4. Do NOT answer questions about programming, general knowledge, personal advice, math, or any other subject.
-5. Keep answers clear, accurate, and professional.
-6. If the question is unclear but related to finance/cashflow, politely ask for clarification.
-
-Your purpose:
-To help users understand, analyze, and forecast cash flow and short-term financial performance only.
+2. If a question is NOT about these topics, politely decline and remind the user of your purpose.
+3. Be helpful, concise, and professional.
+4. Provide actionable insights when possible.
 """
 
-# ---------- Helper function to handle greetings ----------
-def handle_greeting(message: str) -> str:
-    """Handle simple greetings"""
-    msg_lower = message.lower().strip()
-    
-    if msg_lower in ["hi", "hello", "hey", "hii", "helo"]:
-        return "Hi there, how are you! 😊 I'm here to help you with cash flow and financial forecasting questions."
-    elif msg_lower in ["bye", "goodbye", "see you", "byebye"]:
-        return "Bye! See you next time. Feel free to come back for any cashflow or forecasting questions! 👋"
-    elif msg_lower in ["how are you", "how are you?", "how r u"]:
-        return "I'm doing great, thank you for asking! How can I help you with cash flow or financial forecasting today?"
-    
-    return None
-
-# ---------- API calling functions with fallback ----------
-def try_jules_api(messages: List[dict]) -> str:
-    """Try Jules API"""
-    if not JULES_API_KEY:
-       # ---------- Rule-based Fallback (No API needed) ----------
-def fallback_chatbot_no_api(message: str) -> str:
-    """
-    Simple rule-based chatbot that works without any API keys.
-    Provides basic responses about cashflow and financial forecasting.
-    """
-    msg_lower = message.lower().strip()
-    
-    # Cashflow keywords
-    if any(word in msg_lower for word in ['cashflow', 'cash flow', 'cash-flow']):
-        return """Cash flow is the movement of money in and out of your business. 
-For MSMEs, maintaining positive cash flow is crucial for operations.
-
-Key tips:
-• Track all inflows (sales, payments received)
-• Monitor outflows (expenses, purchases)
-• Forecast at least 4-8 weeks ahead
-• Maintain a buffer for unexpected costs
-
-Would you like to know more about cash flow management?"""
-    
-    # Forecasting
-    elif any(word in msg_lower for word in ['forecast', 'predict', 'future', 'projection']):
-        return """Financial forecasting helps predict future cash positions based on historical data.
-
-Best practices:
-• Use at least 3-6 months of historical data
-• Consider seasonal trends
-• Account for known upcoming expenses
-• Update forecasts weekly
-• Build in contingency buffers
-
-Upload your transaction data to get AI-powered forecasts!"""
-    
-    # Working capital
-    elif any(word in msg_lower for word in ['working capital', 'liquidity', 'buffer']):
-        return """Working capital is the difference between current assets and liabilities.
-
-For healthy cash flow:
-• Maintain 2-3 months of operating expenses as buffer
-• Negotiate better payment terms with suppliers
-• Speed up receivables collection
-• Manage inventory efficiently
-
-This helps you handle unexpected expenses or opportunities!"""
-    
-    # Risk management
-    elif any(word in msg_lower for word in ['risk', 'risky', 'danger', 'alert']):
-        return """Cash flow risks can threaten business operations.
-
-Common risks:
-• Late customer payments
-• Unexpected large expenses
-• Seasonal revenue fluctuations
-• Over-investment in inventory
-
-Mitigation strategies:
-• Diversify revenue streams
-• Build cash reserves
-• Use early payment discounts
-• Monitor KPIs weekly"""
-    
-    # Budget
-    elif any(word in msg_lower for word in ['budget', 'expense', 'cost', 'spending']):
-        return """Budgeting is essential for cash flow management.
-
-Create an effective budget:
-• List all fixed costs (rent, salaries, utilities)
-• Estimate variable costs (materials, supplies)
-• Project realistic revenue
-• Review and adjust monthly
-• Track actual vs budgeted
-
-This helps identify where money is going and plan better!"""
-    
-    # General financial question
-    elif any(word in msg_lower for word in ['money', 'financial', 'finance', 'business']):
-        return """I'm here to help with cashflow and financial forecasting for MSMEs!
-
-I can assist with:
-• Cash flow analysis and management
-• Financial forecasting techniques
-• Working capital optimization
-• Risk identification and mitigation
-• Budgeting strategies
-
-Please ask me a specific question about any of these topics!"""
-    
-    # Default response for off-topic
-    else:
-        return "I'm specialized in cashflow and financial forecasting. Please ask questions related to cash management, forecasting, budgeting, or financial planning for MSMEs."
-
- 
-       return None
-    
-    try:
-        headers = {
-            "X-Goog-Api-Key": JULES_API_KEY,
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "gemini-pro",
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 500
-        }
-        response = requests.post(JULES_API_URL, json=payload, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            reply = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-            if reply.strip():
-                return reply
-        return None
-    except:
-        return None
-
-def try_gemini_api(messages: List[dict]) -> str:
-    """Try Google Gemini API"""
-    if not GEMINI_API_KEY:
-        return None
-    
-    try:
-        # Combine messages into a single prompt
-        prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
-        
-        url = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}]
-        }
-        
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            reply = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-            if reply.strip():
-                return reply
-        return None
-    except:
-        return None
-
-def try_grok_api(messages: List[dict]) -> str:
-    """Try Grok (X.AI) API"""
-    if not GROK_API_KEY:
-        return None
-    
-    try:
-        headers = {
-            "Authorization": f"Bearer {GROK_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "grok-beta",
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 500
-        }
-        response = requests.post(GROK_API_URL, json=payload, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            reply = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-            if reply.strip():
-                return reply
-        return None
-    except:
-        return None
-
-def try_huggingface_api(messages: List[dict]) -> str:
-    """Try HuggingFace API"""
-    if not HUGGINGFACE_API_KEY:
-        return None
-    
-    try:
-        # Combine messages into a single prompt
-        prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
-        
-        headers = {
-            "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 500,
-                "temperature": 0.7
-            }
-        }
-        
-        response = requests.post(HUGGINGFACE_API_URL, json=payload, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            if isinstance(result, list) and len(result) > 0:
-                reply = result[0].get("generated_text", "")
-                if reply.strip():
-                    return reply
-        return None
-    except:
-        return None
-
-# ---------- FastAPI app ----------
-app = FastAPI(title="Cashflow & Forecasting Chatbot with Multi-API Fallback")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -280,80 +60,176 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
-    history: List[dict] | None = None
+    history: List = []
 
 class ChatResponse(BaseModel):
     reply: str
-    api_used: str = "fallback"
+
+# Rule-based fallback responses
+FALLBACK_RESPONSES = {
+    "cash flow": "Cash flow refers to the movement of money in and out of your business. Positive cash flow means more money coming in than going out, which is essential for business sustainability.",
+    "forecast": "Financial forecasting involves predicting future cash flows based on historical data, trends, and business plans. This helps businesses prepare for upcoming expenses and revenue.",
+    "working capital": "Working capital is the difference between current assets and current liabilities. It represents the funds available for day-to-day operations.",
+    "budget": "Budgeting for cash flow involves planning your expected income and expenses over a period to ensure you have enough cash to meet obligations.",
+    "liquidity": "Liquidity refers to how easily assets can be converted to cash. High liquidity means you can quickly access cash for immediate needs.",
+    "msme": "MSMEs (Micro, Small, and Medium Enterprises) often face cash flow challenges. Proper forecasting can help identify tight periods and plan accordingly.",
+}
+
+def get_fallback_response(question: str) -> str:
+    """Generate a rule-based response based on keywords"""
+    question_lower = question.lower()
+    
+    # Check for financial/cashflow related keywords
+    cashflow_keywords = ["cash", "flow", "forecast", "financial", "budget", "capital", "liquidity", "msme", "money", "revenue", "expense", "income"]
+    
+    is_relevant = any(keyword in question_lower for keyword in cashflow_keywords)
+    
+    if not is_relevant:
+        return "I'm specialized in financial forecasting and cash flow management. Please ask questions related to cash flow, forecasting, budgeting, working capital, or liquidity planning."
+    
+    # Find best matching response
+    for keyword, response in FALLBACK_RESPONSES.items():
+        if keyword in question_lower:
+            return response
+    
+    # Generic relevant response
+    return "For cash flow and financial forecasting questions, I recommend: 1) Track all income and expenses regularly, 2) Create monthly cash flow projections, 3) Identify seasonal patterns, 4) Maintain a cash reserve for emergencies. What specific aspect would you like to know more about?"
+
+def call_jules_api(message: str) -> str:
+    """Try Jules API first"""
+    try:
+        headers = {"Authorization": f"Bearer {JULES_API_KEY}", "Content-Type": "application/json"}
+        payload = {
+            "model": "jules-chat",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": message}
+            ],
+            "temperature": 0.7
+        }
+        response = requests.post(JULES_API_URL, json=payload, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("choices", [])[0].get("message", {}).get("content", "")
+    except:
+        pass
+    return None
+
+def call_gemini_api(message: str) -> str:
+    """Try Gemini API"""
+    try:
+        url = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
+        payload = {
+            "contents": [{
+                "parts": [{"text": f"{SYSTEM_PROMPT}\n\nUser: {message}"}]
+            }]
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("candidates", [])[0].get("content", {}).get("parts", [])[0].get("text", "")
+    except:
+        pass
+    return None
+
+def call_grok_api(message: str) -> str:
+    """Try Grok API"""
+    try:
+        headers = {"Authorization": f"Bearer {GROK_API_KEY}", "Content-Type": "application/json"}
+        payload = {
+            "model": "grok-beta",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": message}
+            ]
+        }
+        response = requests.post(GROK_API_URL, json=payload, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("choices", [])[0].get("message", {}).get("content", "")
+    except:
+        pass
+    return None
+
+def call_huggingface_api(message: str) -> str:
+    """Try HuggingFace API"""
+    try:
+        headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
+        payload = {"inputs": f"{SYSTEM_PROMPT}\n\nUser: {message}\nAssistant:"}
+        response = requests.post(HUGGINGFACE_API_URL, json=payload, headers=headers, timeout=10)
+        if response.status_code == 200:
+            result = response.json()
+            if isinstance(result, list) and len(result) > 0:
+                return result[0].get("generated_text", "").split("Assistant:")[-1].strip()
+    except:
+        pass
+    return None
+
+def call_openrouter_api(message: str) -> str:
+    """Try OpenRouter API"""
+    try:
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "openai/gpt-3.5-turbo",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": message}
+            ]
+        }
+        response = requests.post(OPENROUTER_API_URL, json=payload, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("choices", [])[0].get("message", {}).get("content", "")
+    except:
+        pass
+    return None
+
+def call_aistudio_api(message: str) -> str:
+    """Try AI Studio API (Google)"""
+    try:
+        url = f"{AISTUDIO_API_URL}?key={AISTUDIO_API_KEY}"
+        payload = {
+            "contents": [{
+                "parts": [{"text": f"{SYSTEM_PROMPT}\n\nUser: {message}"}]
+            }]
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("candidates", [])[0].get("content", {}).get("parts", [])[0].get("text", "")
+    except:
+        pass
+    return None
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
-    try:
-        # Check for greetings first
-        greeting_response = handle_greeting(req.message)
-        if greeting_response:
-            return ChatResponse(reply=greeting_response, api_used="greeting")
-        
-        # Prepare messages for API
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        
-        # Add conversation history if provided
-        if req.history:
-            for msg in req.history:
-                messages.append(msg)
-        
-        # Add current user message
-        messages.append({"role": "user", "content": req.message})
-        
-        # Try APIs in order: Jules -> Gemini -> Grok -> HuggingFace
-        reply = None
-        api_used = "none"
-        
-        # Try Jules first
-        reply = try_jules_api(messages)
-        if reply:
-            api_used = "Jules AI"
-        
-        # Try Gemini if Jules failed
-        if not reply:
-            reply = try_gemini_api(messages)
-            if reply:
-                api_used = "Google Gemini"
-        
-        # Try Grok if Gemini failed
-        if not reply:
-            reply = try_grok_api(messages)
-            if reply:
-                api_used = "Grok (X.AI)"
-        
-        # Try HuggingFace if Grok failed
-        if not reply:
-            reply = try_huggingface_api(messages)
-            if reply:
-                api_used = "HuggingFace"
-        
-        # If all APIs failed
-        if not reply:
-            reply = "I'm currently experiencing technical difficulties with all AI services. Please try again later."
-            api_used = "error"
-        
-        return ChatResponse(reply=reply, api_used=api_used)
-                   # Use rule-based fallback when all API keys fail
-            reply = fallback_chatbot_no_api(req.message)
-            api_used = "Rule-based Fallback (No API)"
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Backend error: {str(e)}")
+async def chat(request: ChatRequest):
+    """
+    Chat endpoint with cascading fallback through all 10 APIs,
+    then fallback to rule-based system if all APIs fail.
+    """
+    user_message = request.message
+    
+    # Try all APIs in sequence
+    apis = [
+        ("Jules", call_jules_api),
+        ("Gemini", call_gemini_api),
+        ("Grok", call_grok_api),
+        ("HuggingFace", call_huggingface_api),
+        ("OpenRouter", call_openrouter_api),
+        ("AI Studio", call_aistudio_api),
+    ]
+    
+    for api_name, api_function in apis:
+        try:
+            response = api_function(user_message)
+            if response:
+                return ChatResponse(reply=response)
+        except Exception as e:
+            print(f"{api_name} API failed: {str(e)}")
+            continue
+    
+    # If all APIs fail, use rule-based fallback
+    fallback_reply = get_fallback_response(user_message)
+    return ChatResponse(reply=fallback_reply)
 
 @app.get("/health")
-def health_check():
-    """Health check endpoint with API key status"""
-    return {
-        "status": "healthy",
-        "available_apis": {
-            "jules": bool(JULES_API_KEY),
-            "gemini": bool(GEMINI_API_KEY),
-            "grok": bool(GROK_API_KEY),
-            "huggingface": bool(HUGGINGFACE_API_KEY)
-        }
-    }
+async def health():
+    return {"status": "healthy", "message": "Chatbot API with 10 APIs + rule-based fallback"}
