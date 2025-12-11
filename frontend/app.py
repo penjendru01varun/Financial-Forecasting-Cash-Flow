@@ -122,16 +122,6 @@ st.title("💰 MSME Cashflow AI Cockpit")
 st.markdown(
     """<div style='background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 10px; margin-bottom: 20px;'>
     <p style='color: #1e40af; margin: 0; font-size: 16px;'>
-    # === TEAM NAME HEADER ===
-st.markdown("""
-<div style='text-align: center; background: linear-gradient(90deg, #667eea, #764ba2); padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
-    <h1 style='color: white; font-size: 3rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);'>
-                        Penjendru Varun Team    </h1>
-    <p style='color: #f0f9ff; font-size: 1.2rem; margin-top: 10px;'>
-        MSME Cashflow Forecasting Solution
-    </p>
-</div>
-""", unsafe_allow_html=True)
 
     Upload your cashflow CSV (columns: <code>date</code>, <code>description</code>, <code>category</code>, 
     <code>type</code>, <code>amount</code>) and let our AI agents forecast your next 4–12 weeks and highlight risks.
