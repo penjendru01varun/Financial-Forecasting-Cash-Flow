@@ -199,6 +199,22 @@ def call_aistudio_api(message: str) -> str:
         pass
     return None
 
+def check_greeting(message: str) -> str:
+    """Check if message is a greeting and return appropriate response"""
+    message_lower = message.lower().strip()
+    
+    # Greetings
+    greetings = ["hi", "hello", "hey", "hii", "helo", "hola"]
+    if any(message_lower == greeting for greeting in greetings):
+        return "Hello! How are you? I'm your AI cashflow assistant. Ask me anything about cash flow forecasting, budgeting, working capital, or liquidity planning."
+    
+    # Goodbye
+    goodbyes = ["bye", "goodbye", "see you", "byee", "bbye"]
+    if any(goodbye in message_lower for goodbye in goodbyes):
+        return "Bye! Have a great day ahead. Feel free to return if you need help with cashflow or financial forecasting!"
+    
+    return None
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """
@@ -206,6 +222,11 @@ async def chat(request: ChatRequest):
     then fallback to rule-based system if all APIs fail.
     """
     user_message = request.message
+    
+    # Check for greetings first
+    greeting_response = check_greeting(user_message)
+    if greeting_response:
+        return ChatResponse(reply=greeting_response)
     
     # Try all APIs in sequence
     apis = [
