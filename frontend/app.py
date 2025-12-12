@@ -140,24 +140,8 @@ with st.sidebar:
 
 uploaded_file = st.file_uploader("📂 Upload CSV file", type=["csv"])
 
-if uploaded_file is not uploaded_files:
-    if st.button("🚀 Run AI Agents"):
-                # Merge multiple CSV files
-        try:
-            if len(uploaded_files) > 1:
-                all_dfs = []
-                for file in uploaded_files:
-                    df = pd.read_csv(file)
-                    all_dfs.append(df)
-                merged_df = pd.concat(all_dfs, ignore_index=True)
-                st.success(f"✅ Merged {len(uploaded_files)} files with {len(merged_df)} total transactions")
-            else:
-                merged_df = pd.read_csv(uploaded_files[0])
-                st.info(f"📄 Loaded 1 file with {len(merged_df)} transactions")
-        except Exception as e:
-            st.error(f"❌ Error reading files: {e}")
-            merged_df = None
-uploaded_files = st.file_uploader("📂 Upload CSV files (multiple allowed)", type=["csv"], accept_multiple_files=True)            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
+if uploaded_file is not None:    if st.button("🚀 Run AI Agents"):
+            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
             data = {"horizon_weeks": str(horizon_weeks)}
             if initial_provided:
                 data["initial_balance"] = str(initial_balance)
